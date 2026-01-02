@@ -6,8 +6,6 @@
 
 A lightweight utility that displays on-screen notifications when you switch keyboard input languages.
 
-![Keyboard Language Indicator Demo](https://via.placeholder.com/800x400/03fc1c/fafafa?text=Keyboard+Language+Indicator)
-
 ## ✨ Features
 
 - **Real-time language change notifications** - Instantly see which language you've switched to
