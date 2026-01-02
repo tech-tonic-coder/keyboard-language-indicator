@@ -155,9 +155,6 @@ public partial class MainWindow : HandyControl.Controls.Window
         _settings.CloseToTray = CloseToTrayCheckBox.IsChecked ?? false;
         _settings.CheckForUpdates = CheckForUpdatesCheckBox.IsChecked ?? false;
 
-        // Note: Background and text colors are NOT saved here automatically
-        // They are only saved when user clicks "Save as Default Colors" button
-
         _settings.Save();
     }
 

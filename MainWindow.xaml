@@ -231,6 +231,15 @@
                 />
               </StackPanel>
             </Grid>
+            <Button
+              x:Name="SaveDefaultColorsButton"
+              Content="Set as Default Colors"
+              Click="SaveDefaultColors_Click"
+              Style="{StaticResource ButtonPrimary}"
+              HorizontalAlignment="Stretch"
+              Margin="0,0,0,20"
+              Padding="15,5"
+            />
             <!-- Add Language Section -->
             <Border
               Padding="15"
