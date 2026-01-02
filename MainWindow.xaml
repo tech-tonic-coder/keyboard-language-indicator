@@ -10,6 +10,7 @@
   Background="{DynamicResource RegionBrush}"
   Closing="Window_Closing"
   StateChanged="Window_StateChanged"
+  ResizeMode="CanMinimize"
 >
   <hc:Window.Resources>
     <ContextMenu x:Key="TrayMenu">
@@ -159,15 +160,40 @@
         </TabItem.Header>
         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
           <StackPanel Margin="15,20,15,10">
+            <!-- Application Theme -->
             <TextBlock
-              Text="Default Notification Theme"
+              Text="Application Theme"
               Margin="0,0,0,15"
               FontWeight="Bold"
               FontSize="15"
               Foreground="{DynamicResource PrimaryTextBrush}"
             />
-            <!-- Color Pickers with proper layout -->
-            <Grid>
+            <CheckBox
+              x:Name="DarkModeCheckBox"
+              Content="Enable Dark Mode"
+              FontSize="13"
+              Margin="0,0,0,20"
+              Checked="Theme_Changed"
+              Unchecked="Theme_Changed"
+            />
+            <Separator Margin="0,0,0,25" Background="{DynamicResource BorderBrush}" />
+            <!-- Notification Colors -->
+            <TextBlock
+              Text="Notification Colors"
+              Margin="0,0,0,15"
+              FontWeight="Bold"
+              FontSize="15"
+              Foreground="{DynamicResource PrimaryTextBrush}"
+            />
+            <TextBlock
+              Text="Set default colors or configure custom colors for specific languages."
+              TextWrapping="Wrap"
+              Margin="0,0,0,20"
+              FontSize="12"
+              Foreground="{DynamicResource SecondaryTextBrush}"
+            />
+            <!-- Color Pickers -->
+            <Grid Margin="0,0,0,20">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="*" />
@@ -185,7 +211,6 @@
                   x:Name="BgColorPicker"
                   Width="250"
                   HorizontalAlignment="Left"
-                  SelectedColorChanged="Settings_Changed"
                   hc:InfoElement.Placeholder="Select Color"
                 />
               </StackPanel>
@@ -202,51 +227,10 @@
                   x:Name="TextColorPicker"
                   Width="250"
                   HorizontalAlignment="Left"
-                  SelectedColorChanged="Settings_Changed"
                   hc:InfoElement.Placeholder="Select Color"
                 />
               </StackPanel>
             </Grid>
-            <Separator Margin="0,30,0,25" Background="{DynamicResource BorderBrush}" />
-            <!-- Application Theme -->
-            <TextBlock
-              Text="Application Theme"
-              Margin="0,0,0,15"
-              FontWeight="Bold"
-              FontSize="15"
-              Foreground="{DynamicResource PrimaryTextBrush}"
-            />
-            <CheckBox
-              x:Name="DarkModeCheckBox"
-              Content="Enable Dark Mode"
-              FontSize="13"
-              Checked="Theme_Changed"
-              Unchecked="Theme_Changed"
-            />
-          </StackPanel>
-        </ScrollViewer>
-      </TabItem>
-      <!-- Language Colors Tab -->
-      <TabItem>
-        <TabItem.Header>
-          <TextBlock Text="Language Colors" FontSize="14" Padding="10,5" />
-        </TabItem.Header>
-        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
-          <StackPanel Margin="15,20,15,10">
-            <TextBlock
-              Text="Per-Language Color Settings"
-              Margin="0,0,0,10"
-              FontWeight="Bold"
-              FontSize="15"
-              Foreground="{DynamicResource PrimaryTextBrush}"
-            />
-            <TextBlock
-              Text="Configure custom colors for specific languages. Default colors will be used for languages not listed here."
-              TextWrapping="Wrap"
-              Margin="0,0,0,20"
-              FontSize="12"
-              Foreground="{DynamicResource SecondaryTextBrush}"
-            />
             <!-- Add Language Section -->
             <Border
               Padding="15"
@@ -255,83 +239,35 @@
               BorderThickness="1"
               CornerRadius="4"
               Margin="0,0,0,15"
-              Height="580"
             >
-              <StackPanel Height="530">
+              <StackPanel>
                 <TextBlock
-                  Text="Add Language Configuration"
+                  Text="Language-Specific Colors"
                   FontWeight="SemiBold"
-                  Margin="0,0,0,5"
+                  Margin="0,0,0,10"
                 />
-                <Grid>
-                  <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="240" />
-                    <ColumnDefinition Width="*" />
-                  </Grid.ColumnDefinitions>
-                  <Grid.RowDefinitions>
-                    <RowDefinition Height="50" />
-                    <RowDefinition Height="20" />
-                    <RowDefinition Height="600" />
-                    <RowDefinition Height="50" />
-                  </Grid.RowDefinitions>
-                  <TextBlock
-                    Text="Language:"
-                    Grid.Row="0"
-                    VerticalAlignment="Top"
-                    Margin="0,6,0,0"
-                  />
-                  <hc:ComboBox
-                    x:Name="LanguageSelector"
-                    Grid.Row="0"
-                    Margin="75,1,26,9"
-                    IsEditable="True"
-                    hc:InfoElement.Placeholder="Select or type language"
-                    Style="{StaticResource ComboBoxExtend}"
-                    Grid.ColumnSpan="2"
-                  />
-                  <TextBlock
-                    Text="Background"
-                    Grid.Row="1"
-                    VerticalAlignment="Center"
-                    FontSize="13"
-                    FontWeight="Medium"
-                  />
-                  <hc:ColorPicker
-                    x:Name="LangBgColorPicker"
-                    Grid.Row="2"
-                    Width="220"
-                    Height="auto"
-                    HorizontalAlignment="Left"
-                    Margin="-10,16,0,294"
-                    Grid.ColumnSpan="2"
-                  />
-                  <TextBlock
-                    Text="Text Color"
-                    Grid.Row="1"
-                    Margin="0,0,196,0"
-                    Grid.Column="1"
-                    FontSize="13"
-                    FontWeight="Medium"
-                    VerticalAlignment="Center"
-                  />
-                  <hc:ColorPicker
-                    x:Name="LangTextColorPicker"
-                    Grid.Row="2"
-                    Width="220"
-                    Height="auto"
-                    HorizontalAlignment="Center"
-                    Margin="0,16,0,272"
-                    Grid.Column="1"
-                  />
-                  <Button
-                    Grid.Row="3"
-                    Grid.ColumnSpan="2"
-                    Content="Add Language"
-                    Click="AddLanguageConfig_Click"
-                    Style="{DynamicResource ButtonPrimary}"
-                    HorizontalAlignment="Stretch"
-                  />
-                </Grid>
+                <TextBlock
+                  Text="Select a language, adjust the colors above, then add it to the list."
+                  TextWrapping="Wrap"
+                  Margin="0,0,0,15"
+                  FontSize="12"
+                  Foreground="{DynamicResource SecondaryTextBrush}"
+                />
+                <hc:ComboBox
+                  x:Name="LanguageSelector"
+                  Margin="0,0,0,15"
+                  IsEditable="True"
+                  hc:InfoElement.Placeholder="Select or type language"
+                  hc:TitleElement.Title="Language"
+                  hc:TitleElement.TitlePlacement="Top"
+                  Style="{StaticResource ComboBoxExtend}"
+                />
+                <Button
+                  Content="Add Language with Current Colors"
+                  Click="AddLanguageConfig_Click"
+                  Style="{DynamicResource ButtonPrimary}"
+                  HorizontalAlignment="Stretch"
+                />
               </StackPanel>
             </Border>
             <!-- Language List -->

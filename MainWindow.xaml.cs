@@ -155,11 +155,8 @@ public partial class MainWindow : HandyControl.Controls.Window
         _settings.CloseToTray = CloseToTrayCheckBox.IsChecked ?? false;
         _settings.CheckForUpdates = CheckForUpdatesCheckBox.IsChecked ?? false;
 
-        if (BgColorPicker.SelectedBrush is SolidColorBrush bgBrush)
-            _settings.BackgroundColor = bgBrush.Color;
-
-        if (TextColorPicker.SelectedBrush is SolidColorBrush textBrush)
-            _settings.TextColor = textBrush.Color;
+        // Note: Background and text colors are NOT saved here automatically
+        // They are only saved when user clicks "Save as Default Colors" button
 
         _settings.Save();
     }
@@ -232,18 +229,42 @@ public partial class MainWindow : HandyControl.Controls.Window
             return;
         }
 
-        var bgColor = LangBgColorPicker.SelectedBrush?.Color ?? Colors.Black;
-        var textColor = LangTextColorPicker.SelectedBrush?.Color ?? Colors.White;
+        // Use the current color picker values (without saving as defaults)
+        var bgColor = BgColorPicker.SelectedBrush?.Color ?? Colors.Black;
+        var textColor = TextColorPicker.SelectedBrush?.Color ?? Colors.White;
 
         _settings.SetLanguageColor(langCode, bgColor, textColor);
-        SaveSettings();
+        _settings.SaveLanguageColors();
         RefreshLanguageList();
 
-        // Clear inputs
+        // Clear language selector
         LanguageSelector.SelectedItem = null;
         LanguageSelector.Text = string.Empty;
-        LangBgColorPicker.SelectedBrush = Colors.Black.ToBrush();
-        LangTextColorPicker.SelectedBrush = Colors.White.ToBrush();
+
+        MessageBox.Show(
+            $"Colors saved for {LanguageList.GetName(langCode)}.",
+            "Language Added",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information
+        );
+    }
+
+    private void SaveDefaultColors_Click(object sender, RoutedEventArgs e)
+    {
+        if (BgColorPicker.SelectedBrush is SolidColorBrush bgBrush)
+            _settings.BackgroundColor = bgBrush.Color;
+
+        if (TextColorPicker.SelectedBrush is SolidColorBrush textBrush)
+            _settings.TextColor = textBrush.Color;
+
+        _settings.Save();
+
+        MessageBox.Show(
+            "Default colors have been saved.",
+            "Colors Saved",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information
+        );
     }
 
     private void RemoveLanguageConfig_Click(object sender, RoutedEventArgs e)
