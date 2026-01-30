@@ -20,12 +20,12 @@
     <PublishTrimmed>false</PublishTrimmed>
     <IncludeAllContentForSelfExtract>true</IncludeAllContentForSelfExtract>
 	<!-- Version Information -->
-    <Version>2.0.0</Version>
-    <AssemblyVersion>2.0.0</AssemblyVersion>
-    <FileVersion>2.0.0</FileVersion>
+    <Version>3.0.0</Version>
+    <AssemblyVersion>3.0.0</AssemblyVersion>
+    <FileVersion>3.0.0</FileVersion>
     <Company>tech-tonic-coder</Company>
     <Product>Keyboard Language Indicator</Product>
-    <Copyright>Copyright © 2025</Copyright>
+    <Copyright>Copyright © 2026</Copyright>
     <Description>A lightweight utility for keyboard language change notifications</Description>
   </PropertyGroup>
   
@@ -33,6 +33,11 @@
   <DebugType>portable</DebugType>
   <DebugSymbols>true</DebugSymbols>
   </PropertyGroup>
+  
+  <ItemGroup>
+    <None Remove=".gitignore" />
+    <None Remove="build.ps1" />
+  </ItemGroup>
 
   <ItemGroup>
     <SatelliteResourceLanguages Remove="fa" />

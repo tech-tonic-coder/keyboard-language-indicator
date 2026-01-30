@@ -19,7 +19,8 @@ public partial class MainWindow : HandyControl.Controls.Window
     private readonly StartupService _startup = new();
     private readonly UpdateService _updateService = new();
     private TaskbarIcon? _trayIcon;
-    private NotificationWindow? _notificationWindow;
+    private List<NotificationWindow> _notificationWindows = new();
+    private CursorFollowerWindow? _cursorFollower;
     private InputLanguageMonitor? _monitor;
     private bool _isInitialized;
 
@@ -94,7 +95,7 @@ public partial class MainWindow : HandyControl.Controls.Window
     private void StartLanguageMonitoring()
     {
         _monitor = new InputLanguageMonitor();
-        _monitor.LanguageChanged += (s, lang) => Dispatcher.Invoke(() => ShowNotification(lang));
+        _monitor.LanguageChanged += (s, lang) => Dispatcher.Invoke(() => OnLanguageChanged(lang));
         _monitor.Start();
     }
 
@@ -110,6 +111,23 @@ public partial class MainWindow : HandyControl.Controls.Window
         if (Application.Current is App app)
             app.SetTheme(_settings.IsDarkMode);
         DarkModeCheckBox.IsChecked = _settings.IsDarkMode;
+
+        // Monitor display mode
+        if (_settings.ShowOnAllMonitors)
+        {
+            AllMonitorsRadio.IsChecked = true;
+            MonitorComboBox.IsEnabled = false;
+        }
+        else if (_settings.ShowOnCursorMonitor)
+        {
+            CursorMonitorRadio.IsChecked = true;
+            MonitorComboBox.IsEnabled = false;
+        }
+        else
+        {
+            SingleMonitorRadio.IsChecked = true;
+            MonitorComboBox.IsEnabled = true;
+        }
 
         // Monitor
         SelectComboBoxByTag(MonitorComboBox, _settings.MonitorIndex);
@@ -128,6 +146,16 @@ public partial class MainWindow : HandyControl.Controls.Window
         CloseToTrayCheckBox.IsChecked = _settings.CloseToTray;
         StartWithWindowsCheckBox.IsChecked = _startup.IsEnabled();
         CheckForUpdatesCheckBox.IsChecked = _settings.CheckForUpdates;
+
+        // Cursor Follower
+        EnableCursorFollowerCheckBox.IsChecked = _settings.EnableCursorFollower;
+        CursorFollowerPersistentCheckBox.IsChecked = _settings.CursorFollowerPersistent;
+        CursorFollowerDurationSlider.Value = _settings.CursorFollowerDuration;
+        CursorFollowerOpacitySlider.Value = _settings.CursorFollowerOpacity;
+        CursorFollowerOffsetXSlider.Value = _settings.CursorFollowerOffsetX;
+        CursorFollowerOffsetYSlider.Value = _settings.CursorFollowerOffsetY;
+
+        UpdateCursorFollowerUI();
 
         // About
         VersionText.Text = $"Version {UpdateService.GetCurrentVersion()}";
@@ -155,6 +183,18 @@ public partial class MainWindow : HandyControl.Controls.Window
         _settings.CloseToTray = CloseToTrayCheckBox.IsChecked ?? false;
         _settings.CheckForUpdates = CheckForUpdatesCheckBox.IsChecked ?? false;
 
+        // Monitor display mode
+        _settings.ShowOnAllMonitors = AllMonitorsRadio.IsChecked ?? false;
+        _settings.ShowOnCursorMonitor = CursorMonitorRadio.IsChecked ?? false;
+
+        // Cursor Follower
+        _settings.EnableCursorFollower = EnableCursorFollowerCheckBox.IsChecked ?? false;
+        _settings.CursorFollowerPersistent = CursorFollowerPersistentCheckBox.IsChecked ?? false;
+        _settings.CursorFollowerDuration = CursorFollowerDurationSlider.Value;
+        _settings.CursorFollowerOpacity = CursorFollowerOpacitySlider.Value;
+        _settings.CursorFollowerOffsetX = CursorFollowerOffsetXSlider.Value;
+        _settings.CursorFollowerOffsetY = CursorFollowerOffsetYSlider.Value;
+
         _settings.Save();
     }
 
@@ -178,8 +218,59 @@ public partial class MainWindow : HandyControl.Controls.Window
     private void Persistent_Changed(object sender, RoutedEventArgs e)
     {
         SaveSettings();
-        if (!_settings.IsPersistent && _notificationWindow != null)
-            _notificationWindow.EnableTimer(_settings.Duration);
+        if (!_settings.IsPersistent)
+        {
+            foreach (var window in _notificationWindows)
+                window.EnableTimer(_settings.Duration);
+        }
+    }
+
+    private void MonitorMode_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_isInitialized)
+            return;
+
+        MonitorComboBox.IsEnabled = SingleMonitorRadio.IsChecked ?? false;
+        SaveSettings();
+    }
+
+    private void CursorFollower_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_isInitialized)
+            return;
+
+        UpdateCursorFollowerUI();
+        SaveSettings();
+
+        // Restart cursor follower if settings changed
+        if (_settings.EnableCursorFollower)
+        {
+            _cursorFollower?.Close();
+            _cursorFollower = new CursorFollowerWindow(_settings);
+
+            if (_monitor != null)
+            {
+                var currentLang = GetCurrentLanguage();
+                if (!string.IsNullOrEmpty(currentLang))
+                    _cursorFollower.UpdateLanguage(currentLang);
+            }
+        }
+        else
+        {
+            _cursorFollower?.Close();
+            _cursorFollower = null;
+        }
+    }
+
+    private void UpdateCursorFollowerUI()
+    {
+        var isEnabled = EnableCursorFollowerCheckBox.IsChecked ?? false;
+        CursorFollowerSettingsPanel.IsEnabled = isEnabled;
+
+        var isPersistent = CursorFollowerPersistentCheckBox.IsChecked ?? false;
+        CursorFollowerDurationPanel.Visibility = isPersistent
+            ? Visibility.Collapsed
+            : Visibility.Visible;
     }
 
     private void StartWithWindows_Changed(object sender, RoutedEventArgs e)
@@ -191,10 +282,103 @@ public partial class MainWindow : HandyControl.Controls.Window
     }
 
     private void TestNotification_Click(object sender, RoutedEventArgs e) =>
-        ShowNotification("TEST");
+        OnLanguageChanged("TEST");
 
     private void ViewOnGitHub_Click(object sender, RoutedEventArgs e) =>
         UpdateService.OpenReleasesPage();
+
+    #endregion
+
+    #region Language Change Handling
+
+    private void OnLanguageChanged(string language)
+    {
+        // Show regular notifications
+        ShowNotifications(language);
+
+        // Update cursor follower
+        if (_settings.EnableCursorFollower)
+        {
+            if (_cursorFollower == null)
+            {
+                _cursorFollower = new CursorFollowerWindow(_settings);
+            }
+            _cursorFollower.UpdateLanguage(language);
+        }
+    }
+
+    private void ShowNotifications(string language)
+    {
+        // Close existing notifications
+        foreach (var window in _notificationWindows)
+            window.Close();
+        _notificationWindows.Clear();
+
+        // Get language-specific colors or use defaults
+        if (!_settings.TryGetLanguageColor(language, out var bgColor, out var textColor))
+        {
+            bgColor = _settings.BackgroundColor;
+            textColor = _settings.TextColor;
+        }
+
+        if (_settings.ShowOnAllMonitors)
+        {
+            // Show on all monitors
+            var monitors = MonitorHelper.GetAllMonitors();
+            foreach (var monitor in monitors)
+            {
+                var window = CreateNotificationWindow(language, bgColor, textColor, monitor.Index);
+                _notificationWindows.Add(window);
+                window.Show();
+            }
+        }
+        else if (_settings.ShowOnCursorMonitor)
+        {
+            // Show on cursor's monitor
+            var cursorMonitorIndex = MonitorHelper.GetCursorMonitorIndex();
+            var window = CreateNotificationWindow(language, bgColor, textColor, cursorMonitorIndex);
+            _notificationWindows.Add(window);
+            window.Show();
+        }
+        else
+        {
+            // Show on selected monitor
+            var window = CreateNotificationWindow(
+                language,
+                bgColor,
+                textColor,
+                _settings.MonitorIndex
+            );
+            _notificationWindows.Add(window);
+            window.Show();
+        }
+    }
+
+    private NotificationWindow CreateNotificationWindow(
+        string language,
+        Color bgColor,
+        Color textColor,
+        int monitorIndex
+    )
+    {
+        return new NotificationWindow(
+            language,
+            _settings.Position,
+            _settings.Duration,
+            _settings.Opacity,
+            bgColor,
+            textColor,
+            _settings.FontSize,
+            monitorIndex
+        );
+    }
+
+    private string GetCurrentLanguage()
+    {
+        // This is a helper to get current language for cursor follower initialization
+        // You might want to track this in the InputLanguageMonitor
+        return "EN"; // Default, will be updated on next language change
+    }
 
     #endregion
 
@@ -202,7 +386,6 @@ public partial class MainWindow : HandyControl.Controls.Window
 
     private void AddLanguageConfig_Click(object sender, RoutedEventArgs e)
     {
-        // Get language code from selector (editable combo box)
         string langInput;
         if (LanguageSelector.SelectedItem is System.Windows.Controls.ComboBoxItem item)
         {
@@ -226,7 +409,6 @@ public partial class MainWindow : HandyControl.Controls.Window
             return;
         }
 
-        // Use the current color picker values (without saving as defaults)
         var bgColor = BgColorPicker.SelectedBrush?.Color ?? Colors.Black;
         var textColor = TextColorPicker.SelectedBrush?.Color ?? Colors.White;
 
@@ -234,7 +416,6 @@ public partial class MainWindow : HandyControl.Controls.Window
         _settings.SaveLanguageColors();
         RefreshLanguageList();
 
-        // Clear language selector
         LanguageSelector.SelectedItem = null;
         LanguageSelector.Text = string.Empty;
 
@@ -244,6 +425,45 @@ public partial class MainWindow : HandyControl.Controls.Window
             MessageBoxButton.OK,
             MessageBoxImage.Information
         );
+    }
+
+    private void EditLanguageConfig_Click(object sender, RoutedEventArgs e)
+    {
+        if (sender is System.Windows.Controls.Button { Tag: string langCode })
+        {
+            // Get existing colors for the language
+            if (_settings.TryGetLanguageColor(langCode, out var bgColor, out var textColor))
+            {
+                // Set the color pickers to the existing colors
+                BgColorPicker.SelectedBrush = new SolidColorBrush(bgColor);
+                TextColorPicker.SelectedBrush = new SolidColorBrush(textColor);
+
+                // Set the language selector to the language being edited
+                var langName = LanguageList.GetName(langCode);
+                foreach (System.Windows.Controls.ComboBoxItem item in LanguageSelector.Items)
+                {
+                    if (item.Tag?.ToString() == langCode)
+                    {
+                        LanguageSelector.SelectedItem = item;
+                        break;
+                    }
+                }
+
+                // If language not found in dropdown, set it manually in the editable field
+                if (LanguageSelector.SelectedItem == null)
+                {
+                    LanguageSelector.Text = langCode;
+                }
+
+                MessageBox.Show(
+                    $"Color pickers have been set to the current colors for {langName}.\n\n"
+                        + "Adjust the colors above and click 'Add Language with Current Colors' to update.",
+                    "Edit Language Colors",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+            }
+        }
     }
 
     private void SaveDefaultColors_Click(object sender, RoutedEventArgs e)
@@ -291,35 +511,6 @@ public partial class MainWindow : HandyControl.Controls.Window
 
     #endregion
 
-    #region Notification Display
-
-    private void ShowNotification(string language)
-    {
-        _notificationWindow?.Close();
-
-        // Get language-specific colors or use defaults
-        if (!_settings.TryGetLanguageColor(language, out var bgColor, out var textColor))
-        {
-            bgColor = _settings.BackgroundColor;
-            textColor = _settings.TextColor;
-        }
-
-        _notificationWindow = new NotificationWindow(
-            language,
-            _settings.Position,
-            _settings.Duration,
-            _settings.Opacity,
-            bgColor,
-            textColor,
-            _settings.FontSize,
-            _settings.MonitorIndex
-        );
-
-        _notificationWindow.Show();
-    }
-
-    #endregion
-
     #region Update Checking
 
     private async Task CheckForUpdatesOnStartupAsync()
@@ -327,7 +518,6 @@ public partial class MainWindow : HandyControl.Controls.Window
         if (!_settings.CheckForUpdates)
             return;
 
-        // Only check once per day
         var lastCheck = _settings.LastUpdateCheck;
         if (lastCheck.HasValue && (DateTime.Now - lastCheck.Value).TotalHours < 24)
             return;
@@ -335,7 +525,7 @@ public partial class MainWindow : HandyControl.Controls.Window
         _settings.LastUpdateCheck = DateTime.Now;
         _settings.Save();
 
-        await Task.Delay(5000); // Wait 5 seconds after startup
+        await Task.Delay(5000);
         await CheckForUpdatesAsync(silent: true);
     }
 
@@ -350,6 +540,8 @@ public partial class MainWindow : HandyControl.Controls.Window
         {
             CheckNowButton.IsEnabled = false;
             CheckNowButton.Content = "Checking...";
+            CheckForUpdatesAboutButton.IsEnabled = false;
+            CheckForUpdatesAboutButton.Content = "Checking...";
         }
 
         try
@@ -388,6 +580,8 @@ public partial class MainWindow : HandyControl.Controls.Window
             {
                 CheckNowButton.IsEnabled = true;
                 CheckNowButton.Content = "Check for Updates Now";
+                CheckForUpdatesAboutButton.IsEnabled = true;
+                CheckForUpdatesAboutButton.Content = "Check for Updates";
             }
         }
     }
@@ -427,6 +621,10 @@ public partial class MainWindow : HandyControl.Controls.Window
         }
         else
         {
+            _monitor?.Stop();
+            _cursorFollower?.Close();
+            foreach (var window in _notificationWindows)
+                window.Close();
             _trayIcon?.Dispose();
         }
     }
@@ -455,6 +653,9 @@ public partial class MainWindow : HandyControl.Controls.Window
     private void Exit_Click(object sender, RoutedEventArgs e)
     {
         _monitor?.Stop();
+        _cursorFollower?.Close();
+        foreach (var window in _notificationWindows)
+            window.Close();
         _trayIcon?.Dispose();
         Application.Current.Shutdown();
     }
@@ -476,7 +677,8 @@ public partial class MainWindow : HandyControl.Controls.Window
     {
         if (msg == 0x0312 && wParam.ToInt32() == HOTKEY_ID)
         {
-            _notificationWindow?.Close();
+            foreach (var window in _notificationWindows)
+                window.Close();
             handled = true;
         }
         return IntPtr.Zero;

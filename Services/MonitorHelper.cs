@@ -1,4 +1,5 @@
-﻿using System.Windows.Forms;
+﻿using System.Runtime.InteropServices;
+using System.Windows.Forms;
 using System.Windows.Media;
 
 namespace KeyboardLanguageIndicator.Services;
@@ -6,6 +7,16 @@ namespace KeyboardLanguageIndicator.Services;
 public static class MonitorHelper
 {
     public record MonitorInfo(int Index, string DisplayName, Screen Screen);
+
+    [DllImport("user32.dll")]
+    private static extern bool GetCursorPos(out POINT lpPoint);
+
+    [StructLayout(LayoutKind.Sequential)]
+    private struct POINT
+    {
+        public int X;
+        public int Y;
+    }
 
     public static List<MonitorInfo> GetAllMonitors()
     {
@@ -31,6 +42,29 @@ public static class MonitorHelper
         return (index >= 0 && index < screens.Length) ? screens[index] : Screen.PrimaryScreen!;
     }
 
+    public static int GetCursorMonitorIndex()
+    {
+        if (!GetCursorPos(out POINT point))
+            return 0;
+
+        var screens = Screen.AllScreens;
+        for (int i = 0; i < screens.Length; i++)
+        {
+            var bounds = screens[i].Bounds;
+            if (
+                point.X >= bounds.Left
+                && point.X < bounds.Right
+                && point.Y >= bounds.Top
+                && point.Y < bounds.Bottom
+            )
+            {
+                return i;
+            }
+        }
+
+        return 0; // Default to primary
+    }
+
     public static (double left, double top) CalculatePosition(
         int monitorIndex,
         string position,
@@ -40,8 +74,6 @@ public static class MonitorHelper
         Visual visual
     )
     {
-        // Default: TopRight
-
         var screen = GetMonitor(monitorIndex);
         var workingArea = screen.WorkingArea;
 

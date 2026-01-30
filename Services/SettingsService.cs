@@ -64,6 +64,56 @@ public class SettingsService
         set => _settings.CloseToTray = value;
     }
 
+    // Multi-Monitor Settings
+    public bool ShowOnAllMonitors
+    {
+        get => _settings.ShowOnAllMonitors;
+        set => _settings.ShowOnAllMonitors = value;
+    }
+
+    public bool ShowOnCursorMonitor
+    {
+        get => _settings.ShowOnCursorMonitor;
+        set => _settings.ShowOnCursorMonitor = value;
+    }
+
+    // Cursor Follower Settings
+    public bool EnableCursorFollower
+    {
+        get => _settings.EnableCursorFollower;
+        set => _settings.EnableCursorFollower = value;
+    }
+
+    public bool CursorFollowerPersistent
+    {
+        get => _settings.CursorFollowerPersistent;
+        set => _settings.CursorFollowerPersistent = value;
+    }
+
+    public double CursorFollowerDuration
+    {
+        get => _settings.CursorFollowerDuration;
+        set => _settings.CursorFollowerDuration = value;
+    }
+
+    public double CursorFollowerOpacity
+    {
+        get => _settings.CursorFollowerOpacity;
+        set => _settings.CursorFollowerOpacity = value;
+    }
+
+    public double CursorFollowerOffsetX
+    {
+        get => _settings.CursorFollowerOffsetX;
+        set => _settings.CursorFollowerOffsetX = (int)value;
+    }
+
+    public double CursorFollowerOffsetY
+    {
+        get => _settings.CursorFollowerOffsetY;
+        set => _settings.CursorFollowerOffsetY = (int)value;
+    }
+
     // Update Settings
     public bool CheckForUpdates
     {

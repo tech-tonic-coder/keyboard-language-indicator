@@ -190,5 +190,101 @@ namespace KeyboardLanguageIndicator.Properties {
                 this["LastUpdateCheck"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowOnAllMonitors {
+            get {
+                return ((bool)(this["ShowOnAllMonitors"]));
+            }
+            set {
+                this["ShowOnAllMonitors"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool ShowOnCursorMonitor {
+            get {
+                return ((bool)(this["ShowOnCursorMonitor"]));
+            }
+            set {
+                this["ShowOnCursorMonitor"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("False")]
+        public bool EnableCursorFollower {
+            get {
+                return ((bool)(this["EnableCursorFollower"]));
+            }
+            set {
+                this["EnableCursorFollower"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("True")]
+        public bool CursorFollowerPersistent {
+            get {
+                return ((bool)(this["CursorFollowerPersistent"]));
+            }
+            set {
+                this["CursorFollowerPersistent"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("2")]
+        public double CursorFollowerDuration {
+            get {
+                return ((double)(this["CursorFollowerDuration"]));
+            }
+            set {
+                this["CursorFollowerDuration"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int CursorFollowerOffsetX {
+            get {
+                return ((int)(this["CursorFollowerOffsetX"]));
+            }
+            set {
+                this["CursorFollowerOffsetX"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int CursorFollowerOffsetY {
+            get {
+                return ((int)(this["CursorFollowerOffsetY"]));
+            }
+            set {
+                this["CursorFollowerOffsetY"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0.85")]
+        public double CursorFollowerOpacity {
+            get {
+                return ((double)(this["CursorFollowerOpacity"]));
+            }
+            set {
+                this["CursorFollowerOpacity"] = value;
+            }
+        }
     }
 }

@@ -35,15 +35,45 @@
         </TabItem.Header>
         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
           <StackPanel Margin="15,20,15,10">
-            <!-- Monitor Selector -->
+            <!-- Monitor Display Options -->
+            <TextBlock
+              Text="Display Options"
+              Margin="0,0,0,15"
+              FontWeight="Bold"
+              FontSize="15"
+              Foreground="{DynamicResource PrimaryTextBrush}"
+            />
+            <RadioButton
+              x:Name="SingleMonitorRadio"
+              Content="Show on specific monitor"
+              GroupName="MonitorMode"
+              Margin="0,0,5,10"
+              Checked="MonitorMode_Changed"
+              HorizontalAlignment="Left"
+            />
             <hc:ComboBox
               x:Name="MonitorComboBox"
-              hc:TitleElement.Title="Display Monitor"
-              hc:TitleElement.TitlePlacement="Top"
+              Margin="20,0,0,15"
               Style="{StaticResource ComboBoxExtend}"
-              Margin="0,0,0,25"
               SelectionChanged="Settings_Changed"
             />
+            <RadioButton
+              x:Name="CursorMonitorRadio"
+              Content="Show on monitor where cursor is located"
+              GroupName="MonitorMode"
+              Margin="0,0,5,10"
+              Checked="MonitorMode_Changed"
+              HorizontalAlignment="Left"
+            />
+            <RadioButton
+              x:Name="AllMonitorsRadio"
+              Content="Show on all monitors"
+              GroupName="MonitorMode"
+              Margin="0,0,5,20"
+              Checked="MonitorMode_Changed"
+              HorizontalAlignment="Left"
+            />
+            <Separator Margin="0,0,0,25" Background="{DynamicResource BorderBrush}" />
             <!-- Position Selector -->
             <hc:ComboBox
               x:Name="PositionComboBox"
@@ -150,6 +180,179 @@
                 FontWeight="SemiBold"
               />
             </Grid>
+          </StackPanel>
+        </ScrollViewer>
+      </TabItem>
+      <!-- Cursor Follower Tab -->
+      <TabItem>
+        <TabItem.Header>
+          <TextBlock Text="Cursor Follower" FontSize="14" Padding="10,5" />
+        </TabItem.Header>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
+          <StackPanel Margin="15,20,15,10">
+            <CheckBox
+              x:Name="EnableCursorFollowerCheckBox"
+              Content="Enable Cursor Follower"
+              FontSize="14"
+              FontWeight="SemiBold"
+              Margin="0,0,0,10"
+              Checked="CursorFollower_Changed"
+              Unchecked="CursorFollower_Changed"
+            />
+            <TextBlock
+              Text="Shows a small indicator near the cursor displaying the current keyboard language."
+              TextWrapping="Wrap"
+              Margin="0,0,0,20"
+              FontSize="12"
+              Foreground="{DynamicResource SecondaryTextBrush}"
+            />
+            <Separator Margin="0,0,0,20" Background="{DynamicResource BorderBrush}" />
+            <!-- Cursor Follower Settings (Enabled when checkbox is checked) -->
+            <StackPanel x:Name="CursorFollowerSettingsPanel">
+              <CheckBox
+                x:Name="CursorFollowerPersistentCheckBox"
+                Content="Always show (persistent mode)"
+                Margin="0,0,0,15"
+                Checked="CursorFollower_Changed"
+                Unchecked="CursorFollower_Changed"
+              />
+              <!-- Duration (only shown when not persistent) -->
+              <StackPanel x:Name="CursorFollowerDurationPanel">
+                <Grid Style="{StaticResource SliderRowStyle}">
+                  <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="120" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="70" />
+                  </Grid.ColumnDefinitions>
+                  <TextBlock
+                    Text="Display Duration"
+                    VerticalAlignment="Center"
+                    FontWeight="Medium"
+                  />
+                  <Slider
+                    x:Name="CursorFollowerDurationSlider"
+                    Grid.Column="1"
+                    Minimum="0.5"
+                    Maximum="10"
+                    TickFrequency="0.5"
+                    IsSnapToTickEnabled="True"
+                    ValueChanged="CursorFollower_Changed"
+                    Margin="10,0"
+                  />
+                  <TextBlock
+                    Text="{Binding Value, ElementName=CursorFollowerDurationSlider, StringFormat={}{0:N1}s}"
+                    Grid.Column="2"
+                    VerticalAlignment="Center"
+                    HorizontalAlignment="Right"
+                    Foreground="{DynamicResource PrimaryBrush}"
+                    FontWeight="SemiBold"
+                  />
+                </Grid>
+              </StackPanel>
+              <!-- Opacity -->
+              <Grid Style="{StaticResource SliderRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="120" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="70" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Opacity" VerticalAlignment="Center" FontWeight="Medium" />
+                <Slider
+                  x:Name="CursorFollowerOpacitySlider"
+                  Grid.Column="1"
+                  Minimum="0.3"
+                  Maximum="1"
+                  TickFrequency="0.05"
+                  IsSnapToTickEnabled="True"
+                  ValueChanged="CursorFollower_Changed"
+                  Margin="10,0"
+                />
+                <TextBlock
+                  Text="{Binding Value, ElementName=CursorFollowerOpacitySlider, StringFormat={}{0:P0}}"
+                  Grid.Column="2"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Right"
+                  Foreground="{DynamicResource PrimaryBrush}"
+                  FontWeight="SemiBold"
+                />
+              </Grid>
+              <!-- Offset X -->
+              <Grid Style="{StaticResource SliderRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="120" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="70" />
+                </Grid.ColumnDefinitions>
+                <TextBlock
+                  Text="Horizontal Offset"
+                  VerticalAlignment="Center"
+                  FontWeight="Medium"
+                />
+                <Slider
+                  x:Name="CursorFollowerOffsetXSlider"
+                  Grid.Column="1"
+                  Minimum="0"
+                  Maximum="50"
+                  TickFrequency="1"
+                  IsSnapToTickEnabled="True"
+                  ValueChanged="CursorFollower_Changed"
+                  Margin="10,0"
+                />
+                <TextBlock
+                  Text="{Binding Value, ElementName=CursorFollowerOffsetXSlider, StringFormat={}{0:F0}px}"
+                  Grid.Column="2"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Right"
+                  Foreground="{DynamicResource PrimaryBrush}"
+                  FontWeight="SemiBold"
+                />
+              </Grid>
+              <!-- Offset Y -->
+              <Grid Style="{StaticResource SliderRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="120" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="70" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Vertical Offset" VerticalAlignment="Center" FontWeight="Medium" />
+                <Slider
+                  x:Name="CursorFollowerOffsetYSlider"
+                  Grid.Column="1"
+                  Minimum="0"
+                  Maximum="50"
+                  TickFrequency="1"
+                  IsSnapToTickEnabled="True"
+                  ValueChanged="CursorFollower_Changed"
+                  Margin="10,0"
+                />
+                <TextBlock
+                  Text="{Binding Value, ElementName=CursorFollowerOffsetYSlider, StringFormat={}{0:F0}px}"
+                  Grid.Column="2"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Right"
+                  Foreground="{DynamicResource PrimaryBrush}"
+                  FontWeight="SemiBold"
+                />
+              </Grid>
+            </StackPanel>
+            <Border
+              Margin="0,20,0,0"
+              Padding="12"
+              Background="{DynamicResource InfoBrush}"
+              CornerRadius="4"
+              BorderThickness="1"
+              BorderBrush="{DynamicResource BorderBrush}"
+            >
+              <StackPanel>
+                <TextBlock Text="Note" FontWeight="Bold" FontSize="13" Margin="0,0,0,5" />
+                <TextBlock
+                  Text="The cursor follower works independently from the main notification and can be enabled simultaneously."
+                  FontSize="12"
+                  TextWrapping="Wrap"
+                  Foreground="{DynamicResource SecondaryTextBrush}"
+                />
+              </StackPanel>
+            </Border>
           </StackPanel>
         </ScrollViewer>
       </TabItem>
@@ -301,7 +504,7 @@
                     <StackPanel
                       Grid.Column="1"
                       Orientation="Horizontal"
-                      Margin="15,0,0,0"
+                      Margin="15,0,20,0"
                       VerticalAlignment="Center"
                     >
                       <Border
@@ -330,18 +533,28 @@
                       <TextBlock
                         Text="Text"
                         VerticalAlignment="Center"
+                        Margin="0,0,20,0"
                         FontSize="11"
                         Foreground="{DynamicResource SecondaryTextBrush}"
                       />
                     </StackPanel>
-                    <Button
-                      Grid.Column="2"
-                      Content="Remove"
-                      Click="RemoveLanguageConfig_Click"
-                      Tag="{Binding Code}"
-                      Style="{StaticResource ButtonDanger}"
-                      Padding="10,5"
-                    />
+                    <StackPanel Grid.Column="2" Orientation="Horizontal">
+                      <Button
+                        Content="Edit"
+                        Click="EditLanguageConfig_Click"
+                        Tag="{Binding Code}"
+                        Style="{StaticResource ButtonPrimary}"
+                        Padding="10,5"
+                        Margin="0,0,8,0"
+                      />
+                      <Button
+                        Content="Remove"
+                        Click="RemoveLanguageConfig_Click"
+                        Tag="{Binding Code}"
+                        Style="{StaticResource ButtonDanger}"
+                        Padding="10,5"
+                      />
+                    </StackPanel>
                   </Grid>
                 </DataTemplate>
               </ListBox.ItemTemplate>
@@ -420,7 +633,7 @@
             >
               <StackPanel>
                 <TextBlock
-                  Text="[i] Tip"
+                  Text="Tip"
                   FontWeight="Bold"
                   FontSize="13"
                   Margin="0,0,0,5"
@@ -507,6 +720,7 @@
               Click="ViewOnGitHub_Click"
             />
             <Button
+              x:Name="CheckForUpdatesAboutButton"
               Content="Check for Updates"
               Style="{StaticResource ButtonInfo}"
               HorizontalAlignment="Center"
