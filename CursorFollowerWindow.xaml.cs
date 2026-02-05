@@ -303,6 +303,12 @@ namespace KeyboardLanguageIndicator
             }
         }
 
+        public void UpdateColors(Color bgColor, Color textColor)
+        {
+            FollowerBorder.Background = new SolidColorBrush(bgColor);
+            LanguageText.Foreground = new SolidColorBrush(textColor);
+        }
+
         private void ShowWindow()
         {
             if (!_settings.CursorFollowerPersistent)
