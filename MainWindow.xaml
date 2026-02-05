@@ -35,151 +35,173 @@
         </TabItem.Header>
         <ScrollViewer VerticalScrollBarVisibility="Auto" Padding="5">
           <StackPanel Margin="15,20,15,10">
-            <!-- Monitor Display Options -->
-            <TextBlock
-              Text="Display Options"
-              Margin="0,0,0,15"
-              FontWeight="Bold"
-              FontSize="15"
-              Foreground="{DynamicResource PrimaryTextBrush}"
-            />
-            <RadioButton
-              x:Name="SingleMonitorRadio"
-              Content="Show on specific monitor"
-              GroupName="MonitorMode"
-              Margin="0,0,5,10"
-              Checked="MonitorMode_Changed"
-              HorizontalAlignment="Left"
-            />
-            <hc:ComboBox
-              x:Name="MonitorComboBox"
-              Margin="20,0,0,15"
-              Style="{StaticResource ComboBoxExtend}"
-              SelectionChanged="Settings_Changed"
-            />
-            <RadioButton
-              x:Name="CursorMonitorRadio"
-              Content="Show on monitor where cursor is located"
-              GroupName="MonitorMode"
-              Margin="0,0,5,10"
-              Checked="MonitorMode_Changed"
-              HorizontalAlignment="Left"
-            />
-            <RadioButton
-              x:Name="AllMonitorsRadio"
-              Content="Show on all monitors"
-              GroupName="MonitorMode"
-              Margin="0,0,5,20"
-              Checked="MonitorMode_Changed"
-              HorizontalAlignment="Left"
-            />
-            <Separator Margin="0,0,0,25" Background="{DynamicResource BorderBrush}" />
-            <!-- Position Selector -->
-            <hc:ComboBox
-              x:Name="PositionComboBox"
-              hc:TitleElement.Title="Notification Position"
-              hc:TitleElement.TitlePlacement="Top"
-              Style="{StaticResource ComboBoxExtend}"
-              Margin="0,0,0,25"
-              SelectionChanged="Settings_Changed"
-            >
-              <ComboBoxItem Content="Top Right" Tag="TopRight" />
-              <ComboBoxItem Content="Top Left" Tag="TopLeft" />
-              <ComboBoxItem Content="Top Center" Tag="TopCenter" />
-              <ComboBoxItem Content="Bottom Right" Tag="BottomRight" />
-              <ComboBoxItem Content="Bottom Left" Tag="BottomLeft" />
-              <ComboBoxItem Content="Bottom Center" Tag="BottomCenter" />
-              <ComboBoxItem Content="Center" Tag="Center" />
-            </hc:ComboBox>
-            <!-- Duration Slider -->
-            <Grid Style="{StaticResource SliderRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="95" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="70" />
-              </Grid.ColumnDefinitions>
-              <TextBlock Text="Duration" VerticalAlignment="Center" FontWeight="Medium" />
-              <Slider
-                x:Name="DurationSlider"
-                Grid.Column="1"
-                Minimum="0.5"
-                Maximum="10"
-                TickFrequency="0.5"
-                IsSnapToTickEnabled="True"
-                ValueChanged="Settings_Changed"
-                Margin="10,0"
-              />
-              <TextBlock
-                Text="{Binding Value, ElementName=DurationSlider, StringFormat={}{0:N1}s}"
-                Grid.Column="2"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Right"
-                Foreground="{DynamicResource PrimaryBrush}"
-                FontWeight="SemiBold"
-              />
-            </Grid>
-            <!-- Persistent Mode Checkbox -->
+            <!-- Enable/Disable Notifications -->
             <CheckBox
-              x:Name="PersistentCheckBox"
-              Content="Persistent Mode (Dismiss with Ctrl+Q)"
-              Margin="0,5,0,20"
-              Checked="Persistent_Changed"
-              Unchecked="Persistent_Changed"
+              x:Name="EnableNotificationsCheckBox"
+              Content="Enable screen notifications"
+              FontSize="14"
+              FontWeight="SemiBold"
+              Margin="0,0,0,10"
+              Checked="Notifications_Changed"
+              Unchecked="Notifications_Changed"
             />
-            <!-- Font Size Slider -->
-            <Grid Style="{StaticResource SliderRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="95" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="70" />
-              </Grid.ColumnDefinitions>
-              <TextBlock Text="Font Size" VerticalAlignment="Center" FontWeight="Medium" />
-              <Slider
-                x:Name="FontSizeSlider"
-                Grid.Column="1"
-                Minimum="12"
-                Maximum="48"
-                TickFrequency="1"
-                IsSnapToTickEnabled="True"
-                ValueChanged="Settings_Changed"
-                Margin="10,0"
-              />
+            <TextBlock
+              Text="Shows position-based notifications when switching keyboard languages."
+              TextWrapping="Wrap"
+              Margin="0,0,0,20"
+              FontSize="12"
+              Foreground="{DynamicResource SecondaryTextBrush}"
+            />
+            <Separator Margin="0,0,0,20" Background="{DynamicResource BorderBrush}" />
+
+            <!-- Notification Settings Panel -->
+            <StackPanel x:Name="NotificationSettingsPanel">
+              <!-- Monitor Display Options -->
               <TextBlock
-                Text="{Binding Value, ElementName=FontSizeSlider, StringFormat={}{0:F0}}"
-                Grid.Column="2"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Right"
-                Foreground="{DynamicResource PrimaryBrush}"
-                FontWeight="SemiBold"
+                Text="Display Options"
+                Margin="0,0,0,15"
+                FontWeight="Bold"
+                FontSize="15"
+                Foreground="{DynamicResource PrimaryTextBrush}"
               />
-            </Grid>
-            <!-- Opacity Slider -->
-            <Grid Style="{StaticResource SliderRowStyle}">
-              <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="95" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="70" />
-              </Grid.ColumnDefinitions>
-              <TextBlock Text="Opacity" VerticalAlignment="Center" FontWeight="Medium" />
-              <Slider
-                x:Name="OpacitySlider"
-                Grid.Column="1"
-                Minimum="0.1"
-                Maximum="1"
-                TickFrequency="0.05"
-                IsSnapToTickEnabled="True"
-                ValueChanged="Settings_Changed"
-                Margin="10,0"
+              <RadioButton
+                x:Name="SingleMonitorRadio"
+                Content="Show on specific monitor"
+                GroupName="MonitorMode"
+                Margin="0,0,5,10"
+                Checked="MonitorMode_Changed"
+                HorizontalAlignment="Left"
               />
-              <TextBlock
-                Text="{Binding Value, ElementName=OpacitySlider, StringFormat={}{0:P0}}"
-                Grid.Column="2"
-                VerticalAlignment="Center"
-                HorizontalAlignment="Right"
-                Foreground="{DynamicResource PrimaryBrush}"
-                FontWeight="SemiBold"
+              <hc:ComboBox
+                x:Name="MonitorComboBox"
+                Margin="20,0,0,15"
+                Style="{StaticResource ComboBoxExtend}"
+                SelectionChanged="Settings_Changed"
               />
-            </Grid>
+              <RadioButton
+                x:Name="CursorMonitorRadio"
+                Content="Show on monitor where cursor is located"
+                GroupName="MonitorMode"
+                Margin="0,0,5,10"
+                Checked="MonitorMode_Changed"
+                HorizontalAlignment="Left"
+              />
+              <RadioButton
+                x:Name="AllMonitorsRadio"
+                Content="Show on all monitors"
+                GroupName="MonitorMode"
+                Margin="0,0,5,20"
+                Checked="MonitorMode_Changed"
+                HorizontalAlignment="Left"
+              />
+              <Separator Margin="0,0,0,25" Background="{DynamicResource BorderBrush}" />
+              <!-- Position Selector -->
+              <hc:ComboBox
+                x:Name="PositionComboBox"
+                hc:TitleElement.Title="Notification Position"
+                hc:TitleElement.TitlePlacement="Top"
+                Style="{StaticResource ComboBoxExtend}"
+                Margin="0,0,0,25"
+                SelectionChanged="Settings_Changed"
+              >
+                <ComboBoxItem Content="Top Right" Tag="TopRight" />
+                <ComboBoxItem Content="Top Left" Tag="TopLeft" />
+                <ComboBoxItem Content="Top Center" Tag="TopCenter" />
+                <ComboBoxItem Content="Bottom Right" Tag="BottomRight" />
+                <ComboBoxItem Content="Bottom Left" Tag="BottomLeft" />
+                <ComboBoxItem Content="Bottom Center" Tag="BottomCenter" />
+                <ComboBoxItem Content="Center" Tag="Center" />
+              </hc:ComboBox>
+              <!-- Duration Slider -->
+              <Grid Style="{StaticResource SliderRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="95" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="70" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Duration" VerticalAlignment="Center" FontWeight="Medium" />
+                <Slider
+                  x:Name="DurationSlider"
+                  Grid.Column="1"
+                  Minimum="0.5"
+                  Maximum="10"
+                  TickFrequency="0.5"
+                  IsSnapToTickEnabled="True"
+                  ValueChanged="Settings_Changed"
+                  Margin="10,0"
+                />
+                <TextBlock
+                  Text="{Binding Value, ElementName=DurationSlider, StringFormat={}{0:N1}s}"
+                  Grid.Column="2"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Right"
+                  Foreground="{DynamicResource PrimaryBrush}"
+                  FontWeight="SemiBold"
+                />
+              </Grid>
+              <!-- Persistent Mode Checkbox -->
+              <CheckBox
+                x:Name="PersistentCheckBox"
+                Content="Persistent Mode (Dismiss with Ctrl+Q)"
+                Margin="0,5,0,20"
+                Checked="Persistent_Changed"
+                Unchecked="Persistent_Changed"
+              />
+              <!-- Font Size Slider -->
+              <Grid Style="{StaticResource SliderRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="95" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="70" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Font Size" VerticalAlignment="Center" FontWeight="Medium" />
+                <Slider
+                  x:Name="FontSizeSlider"
+                  Grid.Column="1"
+                  Minimum="12"
+                  Maximum="48"
+                  TickFrequency="1"
+                  IsSnapToTickEnabled="True"
+                  ValueChanged="Settings_Changed"
+                  Margin="10,0"
+                />
+                <TextBlock
+                  Text="{Binding Value, ElementName=FontSizeSlider, StringFormat={}{0:F0}}"
+                  Grid.Column="2"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Right"
+                  Foreground="{DynamicResource PrimaryBrush}"
+                  FontWeight="SemiBold"
+                />
+              </Grid>
+              <!-- Opacity Slider -->
+              <Grid Style="{StaticResource SliderRowStyle}">
+                <Grid.ColumnDefinitions>
+                  <ColumnDefinition Width="95" />
+                  <ColumnDefinition Width="*" />
+                  <ColumnDefinition Width="70" />
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Opacity" VerticalAlignment="Center" FontWeight="Medium" />
+                <Slider
+                  x:Name="OpacitySlider"
+                  Grid.Column="1"
+                  Minimum="0.1"
+                  Maximum="1"
+                  TickFrequency="0.05"
+                  IsSnapToTickEnabled="True"
+                  ValueChanged="Settings_Changed"
+                  Margin="10,0"
+                />
+                <TextBlock
+                  Text="{Binding Value, ElementName=OpacitySlider, StringFormat={}{0:P0}}"
+                  Grid.Column="2"
+                  VerticalAlignment="Center"
+                  HorizontalAlignment="Right"
+                  Foreground="{DynamicResource PrimaryBrush}"
+                  FontWeight="SemiBold"
+                />
+              </Grid>
+            </StackPanel>
           </StackPanel>
         </ScrollViewer>
       </TabItem>
@@ -389,7 +411,7 @@
               Foreground="{DynamicResource PrimaryTextBrush}"
             />
             <TextBlock
-              Text="Set default colors or configure custom colors for specific languages."
+              Text="Set default colors or configure custom colors for specific languages. Changes preview immediately."
               TextWrapping="Wrap"
               Margin="0,0,0,20"
               FontSize="12"
@@ -623,6 +645,141 @@
               Checked="Settings_Changed"
               Unchecked="Settings_Changed"
             />
+
+            <Separator Margin="0,10,0,20" Background="{DynamicResource BorderBrush}" />
+
+            <!-- Text Conversion Settings -->
+            <TextBlock
+              Text="Text Conversion (NEW!)"
+              Margin="0,0,0,15"
+              FontWeight="Bold"
+              FontSize="15"
+              Foreground="{DynamicResource PrimaryTextBrush}"
+            />
+
+            <TextBlock
+              Text="Convert text typed in the wrong language with a keyboard shortcut."
+              TextWrapping="Wrap"
+              Margin="0,0,0,15"
+              FontSize="12"
+              Foreground="{DynamicResource SecondaryTextBrush}"
+            />
+
+            <Border
+              Padding="15"
+              Background="{DynamicResource InfoBrush}"
+              CornerRadius="4"
+              BorderThickness="1"
+              BorderBrush="{DynamicResource BorderBrush}"
+              Margin="0,0,0,15"
+            >
+              <StackPanel>
+                <TextBlock
+                  Text="How to use:"
+                  FontWeight="SemiBold"
+                  FontSize="13"
+                  Margin="0,0,0,8"
+                />
+                <TextBlock
+                  FontSize="12"
+                  TextWrapping="Wrap"
+                  Foreground="{DynamicResource SecondaryTextBrush}"
+                >
+                  <Run Text="1. Type text in the wrong language" />
+                  <LineBreak />
+                  <Run Text="2. Select the text (Ctrl+A for all)" />
+                  <LineBreak />
+                  <Run Text="3. Press " />
+                  <Run FontWeight="Bold" Text="Ctrl+Shift+Space" />
+                  <LineBreak />
+                  <Run Text="4. Text converts automatically!" />
+                </TextBlock>
+              </StackPanel>
+            </Border>
+
+            <StackPanel Margin="0,0,0,12">
+              <TextBlock
+                Text="Keyboard Shortcut:"
+                FontSize="12"
+                FontWeight="SemiBold"
+                Margin="0,0,0,5"
+              />
+              <Border
+                Background="{DynamicResource SecondaryRegionBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="3"
+                Padding="10,8"
+                HorizontalAlignment="Left"
+              >
+                <StackPanel Orientation="Horizontal">
+                  <TextBlock
+                    Text="Ctrl + Shift + Space"
+                    FontFamily="Consolas"
+                    FontSize="14"
+                    FontWeight="Bold"
+                    Foreground="{DynamicResource PrimaryBrush}"
+                  />
+                </StackPanel>
+              </Border>
+            </StackPanel>
+
+            <TextBlock
+              Text="Supported Conversions:"
+              FontSize="12"
+              FontWeight="SemiBold"
+              Margin="0,0,0,5"
+            />
+
+            <ItemsControl Margin="0,0,0,12">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                  <StackPanel Orientation="Horizontal" Margin="0,3">
+                    <TextBlock
+                      Text="•"
+                      Margin="0,0,5,0"
+                      Foreground="{DynamicResource SuccessBrush}"
+                    />
+                    <TextBlock
+                      Text="{Binding}"
+                      FontSize="12"
+                      Foreground="{DynamicResource SecondaryTextBrush}"
+                    />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+              <ItemsControl.Items>
+                <system:String xmlns:system="clr-namespace:System;assembly=mscorlib"
+                  >English ↔ Persian/Farsi</system:String
+                >
+                <system:String xmlns:system="clr-namespace:System;assembly=mscorlib"
+                  >English ↔ Arabic</system:String
+                >
+                <system:String xmlns:system="clr-namespace:System;assembly=mscorlib"
+                  >English ↔ Russian</system:String
+                >
+              </ItemsControl.Items>
+            </ItemsControl>
+
+            <Button
+              x:Name="TestConversionButton"
+              Content="Text Conversion Guide"
+              Padding="15,4"
+              Style="{StaticResource ButtonSuccess}"
+              Click="TestConversion_Click"
+              Margin="0,5,0,0"
+              ToolTip="Click to open a test window where you can try the text conversion feature"
+            />
+
+            <TextBlock
+              Text="Note: The conversion feature works in any application. Select text and press the shortcut!"
+              TextWrapping="Wrap"
+              Margin="0,15,0,0"
+              FontSize="11"
+              FontStyle="Italic"
+              Foreground="{DynamicResource SecondaryTextBrush}"
+            />
+
             <Border
               Margin="0,20,0,0"
               Padding="12"
@@ -666,7 +823,7 @@
             />
             <TextBlock
               x:Name="VersionText"
-              Text="Version 1.0.0"
+              Text="Version 4.0.0"
               FontSize="14"
               HorizontalAlignment="Center"
               Foreground="{DynamicResource SecondaryTextBrush}"
@@ -688,7 +845,7 @@
                   Margin="0,0,0,10"
                 />
                 <TextBlock
-                  Text="A lightweight utility that displays on-screen notifications when you switch keyboard input languages."
+                  Text="A powerful utility that displays notifications when you switch keyboard languages and intelligently converts mistyped text to the correct layout."
                   TextWrapping="Wrap"
                   FontSize="13"
                   Margin="0,0,0,15"
@@ -700,9 +857,26 @@
                   Margin="10,0,0,5"
                   FontSize="12"
                 />
-                <TextBlock Text="• Multi-monitor support" Margin="10,0,0,5" FontSize="12" />
                 <TextBlock
-                  Text="• Customizable colors per language"
+                  Text="• Intelligent text conversion (Ctrl+Shift+Space)"
+                  Margin="10,0,0,5"
+                  FontSize="12"
+                  Foreground="{DynamicResource SuccessBrush}"
+                  FontWeight="SemiBold"
+                />
+                <TextBlock Text="• Cursor follower mode" Margin="10,0,0,5" FontSize="12" />
+                <TextBlock
+                  Text="• Multi-monitor support with flexible display options"
+                  Margin="10,0,0,5"
+                  FontSize="12"
+                />
+                <TextBlock
+                  Text="• Customizable colors per language with live preview"
+                  Margin="10,0,0,5"
+                  FontSize="12"
+                />
+                <TextBlock
+                  Text="• 150+ keyboard layout detection"
                   Margin="10,0,0,5"
                   FontSize="12"
                 />
@@ -711,6 +885,31 @@
                 <TextBlock Text="• Automatic updates" Margin="10,0,0,5" FontSize="12" />
               </StackPanel>
             </Border>
+
+            <Border
+              Padding="15"
+              Background="{DynamicResource SuccessBrush}"
+              BorderBrush="{DynamicResource BorderBrush}"
+              BorderThickness="1"
+              CornerRadius="6"
+              Margin="0,0,0,15"
+              Opacity="0.15"
+            >
+              <StackPanel>
+                <TextBlock
+                  Text="✨ New in Version 4.0!"
+                  FontWeight="Bold"
+                  FontSize="13"
+                  Margin="0,0,0,8"
+                  HorizontalAlignment="Center"
+                />
+                <TextBlock Text="• Intelligent Text Conversion" Margin="5,0,0,3" FontSize="11" />
+                <TextBlock Text="• Live Color Preview" Margin="5,0,0,3" FontSize="11" />
+                <TextBlock Text="• Notification Toggle Control" Margin="5,0,0,3" FontSize="11" />
+                <TextBlock Text="• Enhanced Language Detection" Margin="5,0,0,0" FontSize="11" />
+              </StackPanel>
+            </Border>
+
             <Button
               Content="View on GitHub"
               Style="{StaticResource ButtonPrimary}"
@@ -729,12 +928,42 @@
               Click="CheckForUpdates_Click"
               Width="149"
             />
+
+            <Border
+              Padding="12"
+              Background="{DynamicResource InfoBrush}"
+              CornerRadius="4"
+              BorderThickness="1"
+              BorderBrush="{DynamicResource BorderBrush}"
+              Margin="0,0,0,15"
+            >
+              <StackPanel>
+                <TextBlock
+                  Text="⌨️ Quick Shortcuts"
+                  FontWeight="Bold"
+                  FontSize="12"
+                  Margin="0,0,0,5"
+                />
+                <TextBlock
+                  Text="Ctrl+Shift+Space → Convert selected text"
+                  FontSize="11"
+                  Foreground="{DynamicResource SecondaryTextBrush}"
+                  Margin="0,0,0,3"
+                />
+                <TextBlock
+                  Text="Ctrl+Q → Close persistent notifications"
+                  FontSize="11"
+                  Foreground="{DynamicResource SecondaryTextBrush}"
+                />
+              </StackPanel>
+            </Border>
+
             <TextBlock
               Text="Licensed under GNU GPL v3.0"
               FontSize="11"
               HorizontalAlignment="Center"
               Foreground="{DynamicResource SecondaryTextBrush}"
-              Margin="0,20,0,0"
+              Margin="0,5,0,0"
             />
           </StackPanel>
         </ScrollViewer>

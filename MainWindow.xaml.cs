@@ -1,4 +1,4 @@
-using System.ComponentModel;
+﻿using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
@@ -11,9 +11,12 @@ namespace KeyboardLanguageIndicator;
 
 public partial class MainWindow : HandyControl.Controls.Window
 {
-    private const int HOTKEY_ID = 9000;
+    private const int HOTKEY_ID_CLOSE = 9000;
+    private const int HOTKEY_ID_CONVERT = 9001;
     private const uint MOD_CONTROL = 0x0002;
+    private const uint MOD_SHIFT = 0x0004;
     private const uint VK_Q = 0x51;
+    private const uint VK_SPACE = 0x20;
 
     private readonly SettingsService _settings = new();
     private readonly StartupService _startup = new();
@@ -23,6 +26,9 @@ public partial class MainWindow : HandyControl.Controls.Window
     private CursorFollowerWindow? _cursorFollower;
     private InputLanguageMonitor? _monitor;
     private bool _isInitialized;
+    private NotificationWindow? _previewWindow;
+    private string _currentLanguage = "EN"; // Track current language
+    private string _previousLanguage = "EN"; // Track previous language for conversion
 
     [DllImport("user32.dll")]
     private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
@@ -58,7 +64,7 @@ public partial class MainWindow : HandyControl.Controls.Window
             IconSource = new System.Windows.Media.Imaging.BitmapImage(
                 new Uri("pack://application:,,,/icon.ico")
             ),
-            ToolTipText = "Keyboard Indicator",
+            ToolTipText = "Keyboard Indicator\nCtrl+Shift+Space: Convert text",
             ContextMenu = (System.Windows.Controls.ContextMenu)FindResource("TrayMenu"),
         };
         _trayIcon.TrayMouseDoubleClick += (s, e) => RestoreWindow();
@@ -112,6 +118,10 @@ public partial class MainWindow : HandyControl.Controls.Window
             app.SetTheme(_settings.IsDarkMode);
         DarkModeCheckBox.IsChecked = _settings.IsDarkMode;
 
+        // Enable/Disable Notifications
+        EnableNotificationsCheckBox.IsChecked = _settings.EnableNotifications;
+        UpdateNotificationUI();
+
         // Monitor display mode
         if (_settings.ShowOnAllMonitors)
         {
@@ -164,6 +174,10 @@ public partial class MainWindow : HandyControl.Controls.Window
         BgColorPicker.SelectedBrush = _settings.BackgroundColor.ToBrush();
         TextColorPicker.SelectedBrush = _settings.TextColor.ToBrush();
 
+        // Add event handlers for color preview
+        BgColorPicker.SelectedColorChanged += ColorPicker_SelectedColorChanged;
+        TextColorPicker.SelectedColorChanged += ColorPicker_SelectedColorChanged;
+
         RefreshLanguageList();
     }
 
@@ -182,6 +196,7 @@ public partial class MainWindow : HandyControl.Controls.Window
         _settings.MinimizeToTray = MinimizeToTrayCheckBox.IsChecked ?? false;
         _settings.CloseToTray = CloseToTrayCheckBox.IsChecked ?? false;
         _settings.CheckForUpdates = CheckForUpdatesCheckBox.IsChecked ?? false;
+        _settings.EnableNotifications = EnableNotificationsCheckBox.IsChecked ?? false;
 
         // Monitor display mode
         _settings.ShowOnAllMonitors = AllMonitorsRadio.IsChecked ?? false;
@@ -234,6 +249,21 @@ public partial class MainWindow : HandyControl.Controls.Window
         SaveSettings();
     }
 
+    private void Notifications_Changed(object sender, RoutedEventArgs e)
+    {
+        if (!_isInitialized)
+            return;
+
+        UpdateNotificationUI();
+        SaveSettings();
+    }
+
+    private void UpdateNotificationUI()
+    {
+        var isEnabled = EnableNotificationsCheckBox.IsChecked ?? false;
+        NotificationSettingsPanel.IsEnabled = isEnabled;
+    }
+
     private void CursorFollower_Changed(object sender, RoutedEventArgs e)
     {
         if (!_isInitialized)
@@ -248,12 +278,8 @@ public partial class MainWindow : HandyControl.Controls.Window
             _cursorFollower?.Close();
             _cursorFollower = new CursorFollowerWindow(_settings);
 
-            if (_monitor != null)
-            {
-                var currentLang = GetCurrentLanguage();
-                if (!string.IsNullOrEmpty(currentLang))
-                    _cursorFollower.UpdateLanguage(currentLang);
-            }
+            if (!string.IsNullOrEmpty(_currentLanguage))
+                _cursorFollower.UpdateLanguage(_currentLanguage);
         }
         else
         {
@@ -271,6 +297,50 @@ public partial class MainWindow : HandyControl.Controls.Window
         CursorFollowerDurationPanel.Visibility = isPersistent
             ? Visibility.Collapsed
             : Visibility.Visible;
+    }
+
+    private void ColorPicker_SelectedColorChanged(
+        object sender,
+        HandyControl.Data.FunctionEventArgs<Color> e
+    )
+    {
+        if (!_isInitialized)
+            return;
+
+        // Update preview window with new colors
+        UpdatePreviewWindow();
+    }
+
+    private void UpdatePreviewWindow()
+    {
+        // Close existing preview if any
+        _previewWindow?.Close();
+
+        // Get current colors from pickers
+        var bgColor = BgColorPicker.SelectedBrush?.Color ?? _settings.BackgroundColor;
+        var textColor = TextColorPicker.SelectedBrush?.Color ?? _settings.TextColor;
+
+        // Create a preview notification
+        _previewWindow = CreateNotificationWindow(
+            "PREVIEW",
+            bgColor,
+            textColor,
+            _settings.MonitorIndex
+        );
+        _previewWindow.Show();
+
+        // Auto-close after 3 seconds
+        var timer = new System.Windows.Threading.DispatcherTimer
+        {
+            Interval = TimeSpan.FromSeconds(3),
+        };
+        timer.Tick += (s, e) =>
+        {
+            _previewWindow?.Close();
+            _previewWindow = null;
+            timer.Stop();
+        };
+        timer.Start();
     }
 
     private void StartWithWindows_Changed(object sender, RoutedEventArgs e)
@@ -293,8 +363,14 @@ public partial class MainWindow : HandyControl.Controls.Window
 
     private void OnLanguageChanged(string language)
     {
-        // Show regular notifications
-        ShowNotifications(language);
+        _previousLanguage = _currentLanguage; // Store previous for conversion
+        _currentLanguage = language; // Track current language
+
+        // Show regular notifications if enabled
+        if (_settings.EnableNotifications)
+        {
+            ShowNotifications(language);
+        }
 
         // Update cursor follower
         if (_settings.EnableCursorFollower)
@@ -373,16 +449,9 @@ public partial class MainWindow : HandyControl.Controls.Window
         );
     }
 
-    private string GetCurrentLanguage()
-    {
-        // This is a helper to get current language for cursor follower initialization
-        // You might want to track this in the InputLanguageMonitor
-        return "EN"; // Default, will be updated on next language change
-    }
-
     #endregion
 
-    #region Language Colors Management
+    #region Language Colors Management - IMPROVED
 
     private void AddLanguageConfig_Click(object sender, RoutedEventArgs e)
     {
@@ -414,14 +483,18 @@ public partial class MainWindow : HandyControl.Controls.Window
 
         _settings.SetLanguageColor(langCode, bgColor, textColor);
         _settings.SaveLanguageColors();
+        _settings.Save(); // IMPORTANT: Save immediately
         RefreshLanguageList();
+
+        // Apply colors IMMEDIATELY if this is the current language
+        ApplyColorsImmediately(langCode, bgColor, textColor);
 
         LanguageSelector.SelectedItem = null;
         LanguageSelector.Text = string.Empty;
 
         MessageBox.Show(
-            $"Colors saved for {LanguageList.GetName(langCode)}.",
-            "Language Added",
+            $"Colors saved and applied instantly for {LanguageList.GetName(langCode)}!",
+            "Success",
             MessageBoxButton.OK,
             MessageBoxImage.Information
         );
@@ -474,23 +547,84 @@ public partial class MainWindow : HandyControl.Controls.Window
         if (TextColorPicker.SelectedBrush is SolidColorBrush textBrush)
             _settings.TextColor = textBrush.Color;
 
-        _settings.Save();
+        _settings.Save(); // IMPORTANT: Save immediately
+
+        // Apply colors immediately to current language if it doesn't have custom colors
+        var bgColor = _settings.BackgroundColor;
+        var textColor = _settings.TextColor;
+
+        if (!_settings.TryGetLanguageColor(_currentLanguage, out _, out _))
+        {
+            ApplyColorsImmediately(_currentLanguage, bgColor, textColor);
+        }
+
+        // Show a preview notification with the new colors
+        UpdatePreviewWindow();
 
         MessageBox.Show(
-            "Default colors have been saved.",
-            "Colors Saved",
+            "Default colors have been saved and applied instantly!",
+            "Success",
             MessageBoxButton.OK,
             MessageBoxImage.Information
         );
+    }
+
+    /// <summary>
+    /// Apply colors immediately to notification and cursor follower windows
+    /// </summary>
+    private void ApplyColorsImmediately(string langCode, Color bgColor, Color textColor)
+    {
+        // Apply to notification windows if current language matches
+        if (langCode == _currentLanguage)
+        {
+            foreach (var window in _notificationWindows)
+            {
+                window.UpdateColors(bgColor, textColor);
+            }
+
+            // Apply to cursor follower
+            if (_cursorFollower != null && _settings.EnableCursorFollower)
+            {
+                _cursorFollower.UpdateColors(bgColor, textColor);
+            }
+        }
     }
 
     private void RemoveLanguageConfig_Click(object sender, RoutedEventArgs e)
     {
         if (sender is System.Windows.Controls.Button { Tag: string langCode })
         {
-            _settings.RemoveLanguageColor(langCode);
-            SaveSettings();
-            RefreshLanguageList();
+            var result = MessageBox.Show(
+                $"Are you sure you want to remove custom colors for {LanguageList.GetName(langCode)}?",
+                "Confirm Removal",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question
+            );
+
+            if (result == MessageBoxResult.Yes)
+            {
+                _settings.RemoveLanguageColor(langCode);
+                _settings.SaveLanguageColors();
+                _settings.Save();
+                RefreshLanguageList();
+
+                // If this is the current language, revert to default colors
+                if (langCode == _currentLanguage)
+                {
+                    ApplyColorsImmediately(
+                        _currentLanguage,
+                        _settings.BackgroundColor,
+                        _settings.TextColor
+                    );
+                }
+
+                MessageBox.Show(
+                    $"Custom colors removed for {LanguageList.GetName(langCode)}",
+                    "Removed",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Information
+                );
+            }
         }
     }
 
@@ -507,6 +641,225 @@ public partial class MainWindow : HandyControl.Controls.Window
             .ToList();
 
         LanguageConfigList.ItemsSource = items;
+    }
+
+    #endregion
+
+    #region Text Conversion - IMPROVED AUTOMATIC VERSION
+
+    /// <summary>
+    /// Convert selected text automatically - called by hotkey Ctrl+Shift+Space
+    /// This function:
+    /// 1. Automatically copies selected text (simulates Ctrl+C)
+    /// 2. Converts the text between current and previous language
+    /// 3. Pastes it back (simulates Ctrl+V)
+    /// All in one smooth operation!
+    /// </summary>
+    private async void ConvertSelectedText()
+    {
+        try
+        {
+            Clipboard.Clear(); // Clear clipboard to detect new content reliably
+
+            // Step 1: Simulate Ctrl+C to copy selected text
+            await Task.Delay(200);
+            System.Windows.Forms.SendKeys.SendWait("^c");
+            int retry = 0;
+            while (!Clipboard.ContainsText() && retry < 10)
+            {
+                await Task.Delay(100);
+                retry++;
+            } // Wait for clipboard to be populated
+
+            // Step 2: Get the text from clipboard
+            if (!System.Windows.Forms.Clipboard.ContainsText())
+            {
+                ShowToast("No text selected", "Please select text first", 3);
+                return;
+            }
+
+            string selectedText = System.Windows.Forms.Clipboard.GetText();
+
+            // Check if there's actual text
+            if (string.IsNullOrWhiteSpace(selectedText))
+            {
+                ShowToast("No text selected", "Please select text first", 3);
+                return;
+            }
+
+            // Step 3: Determine conversion direction
+            string fromLang = _previousLanguage;
+            string toLang = _currentLanguage;
+
+            // Check if mapping exists
+            if (!TextConversionService.HasMapping(fromLang, toLang))
+            {
+                // Try reverse direction
+                if (TextConversionService.HasMapping(toLang, fromLang))
+                {
+                    (fromLang, toLang) = (toLang, fromLang);
+                }
+                else
+                {
+                    ShowToast(
+                        "Conversion not supported",
+                        $"No mapping between {fromLang} and {toLang}",
+                        3
+                    );
+                    return;
+                }
+            }
+
+            // Step 4: Convert the text
+            string convertedText = TextConversionService.ConvertText(
+                selectedText,
+                fromLang,
+                toLang
+            );
+
+            // Check if conversion actually changed anything
+            if (convertedText == selectedText)
+            {
+                ShowToast("No conversion needed", "Text appears to be in correct language", 2);
+                return;
+            }
+
+            // Step 5: Put converted text in clipboard
+            System.Windows.Forms.Clipboard.SetText(convertedText);
+            await Task.Delay(100);
+
+            // Step 6: Simulate Ctrl+V to paste converted text
+            System.Windows.Forms.SendKeys.SendWait("^v");
+            await Task.Delay(100);
+
+            // Step 7: Show success notification
+            ShowToast("Text Converted!", $"{fromLang} → {toLang}", 3);
+
+            // Step 8: Restore original clipboard after a delay
+            await Task.Delay(500);
+        }
+        catch (Exception ex)
+        {
+            ShowToast("Conversion Error", ex.Message, 3);
+        }
+    }
+
+    /// <summary>
+    /// Show a temporary toast notification
+    /// </summary>
+    private void ShowToast(string title, string message, double durationSeconds)
+    {
+        var toast = new NotificationWindow(
+            title,
+            "Center",
+            durationSeconds,
+            0.95,
+            Colors.DarkSlateGray,
+            Colors.White,
+            18,
+            MonitorHelper.GetCursorMonitorIndex()
+        );
+
+        toast.Show();
+    }
+
+    /// <summary>
+    /// shows comprehensive guide to user
+    /// </summary>
+    private void TestConversion_Click(object sender, RoutedEventArgs e)
+    {
+        var testMessage =
+            "📝 TEXT CONVERSION GUIDE\n"
+            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            + "🎯 HOW IT WORKS:\n\n"
+            + "1️⃣ Select mistyped text in ANY application\n"
+            + "2️⃣ Press Ctrl+Shift+Space\n"
+            + "3️⃣ Text converts to correct keyboard layout!\n\n"
+            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            + "📋 STEP-BY-STEP EXAMPLES:\n\n"
+            + "Example 1: English → Persian\n"
+            + "  ⚠️ Problem: Meant to type \"سلام\" but keyboard was English\n"
+            + "  ⌨️ You typed: sghl\n"
+            + "  🎬 Steps:\n"
+            + "     • Select \"sghl\" with mouse or Ctrl+A\n"
+            + "     • Press Ctrl+Shift+Space\n"
+            + "  ✅ Result: سلام\n\n"
+            + "Example 2: Persian → English\n"
+            + "  ⚠️ Problem: Meant to type \"hello\" but keyboard was Persian\n"
+            + "  ⌨️ You typed: اثممخ (gibberish!)\n"
+            + "  🎬 Steps:\n"
+            + "     • Select the text\n"
+            + "     • Press Ctrl+Shift+Space\n"
+            + "  ✅ Result: hello\n\n"
+            + "Example 3: Russian → English\n"
+            + "  ⚠️ Problem: Meant to type \"привет\" but forgot to switch\n"
+            + "  ⌨️ You typed: ghbdtn\n"
+            + "  🎬 Steps:\n"
+            + "     • Select \"ghbdtn\"\n"
+            + "     • Press Ctrl+Shift+Space\n"
+            + "  ✅ Result: привет\n\n"
+            + "Example 4: Arabic → English\n"
+            + "  ⚠️ Problem: Typed in wrong layout\n"
+            + "  🎬 Steps:\n"
+            + "     • Select mistyped Arabic text\n"
+            + "     • Press Ctrl+Shift+Space\n"
+            + "  ✅ Result: Converts to English equivalent\n\n"
+            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            + "🌍 SUPPORTED CONVERSIONS:\n\n"
+            + "  ✅ English ↔ Persian/Farsi\n"
+            + "     (Standard & Legacy keyboard layouts)\n"
+            + "  ✅ English ↔ Arabic\n"
+            + "  ✅ English ↔ Russian\n"
+            + "  ✅ English ↔ Turkish\n"
+            + "  ✅ English ↔ Hebrew\n\n"
+            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            + "⚙️ HOW IT DETECTS LANGUAGE:\n\n"
+            + "The app uses your current and previous keyboard\n"
+            + "language to determine conversion direction:\n\n"
+            + "  🔄 If you switch from EN to FA:\n"
+            + "     → Converts English text to Persian\n\n"
+            + "  🔄 If you switch from FA to EN:\n"
+            + "     → Converts Persian text to English\n\n"
+            + "💡 Tip: Switch to your TARGET language\n"
+            + "   keyboard BEFORE converting for best results!\n\n"
+            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            + "ℹ️ CURRENT STATE:\n\n"
+            + $"  • Current Language: {_currentLanguage}\n"
+            + $"  • Previous Language: {_previousLanguage}\n\n"
+            + "  (These are used to determine conversion direction)\n\n"
+            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            + "🎯 WHERE IT WORKS:\n\n"
+            + "  ✅ Microsoft Word, Excel, PowerPoint\n"
+            + "  ✅ Notepad, Notepad++, VS Code\n"
+            + "  ✅ Web browsers (Chrome, Firefox, Edge)\n"
+            + "  ✅ Messaging apps (Telegram, WhatsApp, etc.)\n"
+            + "  ✅ Email clients (Outlook, Thunderbird)\n"
+            + "  ✅ IDEs (Visual Studio, PyCharm, etc.)\n"
+            + "  ✅ Any Windows application with text input!\n\n"
+            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            + "💡 PRO TIPS:\n\n"
+            + "  • Works with SELECTED text only\n"
+            + "  • Your clipboard is preserved (don't worry!)\n"
+            + "  • Conversion is smart - tries multiple layouts\n"
+            + "  • If it doesn't convert, check supported pairs\n"
+            + "  • For Persian: Both Standard & Legacy supported\n"
+            + "  • Toast notification shows conversion status\n\n"
+            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            + "🚀 TRY IT NOW:\n\n"
+            + "1. Open Notepad or any text editor\n"
+            + "2. Type some text in wrong keyboard layout\n"
+            + "3. Select the text (Ctrl+A)\n"
+            + "4. Press Ctrl+Shift+Space\n"
+            + "5. Watch the magic happen! ✨\n\n"
+            + "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n"
+            + "❓ Need help? Check GitHub Issues or Discussions!";
+
+        MessageBox.Show(
+            testMessage,
+            "Text Conversion - Complete Guide",
+            MessageBoxButton.OK,
+            MessageBoxImage.Information
+        );
     }
 
     #endregion
@@ -614,6 +967,9 @@ public partial class MainWindow : HandyControl.Controls.Window
 
     private void Window_Closing(object? sender, CancelEventArgs e)
     {
+        // Close preview window if open
+        _previewWindow?.Close();
+
         if (_settings.CloseToTray)
         {
             e.Cancel = true;
@@ -626,6 +982,11 @@ public partial class MainWindow : HandyControl.Controls.Window
             foreach (var window in _notificationWindows)
                 window.Close();
             _trayIcon?.Dispose();
+
+            // Unregister hotkeys
+            var helper = new WindowInteropHelper(this);
+            UnregisterHotKey(helper.Handle, HOTKEY_ID_CLOSE);
+            UnregisterHotKey(helper.Handle, HOTKEY_ID_CONVERT);
         }
     }
 
@@ -654,9 +1015,16 @@ public partial class MainWindow : HandyControl.Controls.Window
     {
         _monitor?.Stop();
         _cursorFollower?.Close();
+        _previewWindow?.Close();
         foreach (var window in _notificationWindows)
             window.Close();
         _trayIcon?.Dispose();
+
+        // Unregister hotkeys
+        var helper = new WindowInteropHelper(this);
+        UnregisterHotKey(helper.Handle, HOTKEY_ID_CLOSE);
+        UnregisterHotKey(helper.Handle, HOTKEY_ID_CONVERT);
+
         Application.Current.Shutdown();
     }
 
@@ -670,17 +1038,37 @@ public partial class MainWindow : HandyControl.Controls.Window
         var helper = new WindowInteropHelper(this);
         var source = HwndSource.FromHwnd(helper.Handle);
         source.AddHook(HwndHook);
-        RegisterHotKey(helper.Handle, HOTKEY_ID, MOD_CONTROL, VK_Q);
+
+        // Register Ctrl+Q for closing persistent notifications
+        RegisterHotKey(helper.Handle, HOTKEY_ID_CLOSE, MOD_CONTROL, VK_Q);
+
+        // Register Ctrl+Shift+Space for text conversion
+        RegisterHotKey(helper.Handle, HOTKEY_ID_CONVERT, MOD_CONTROL | MOD_SHIFT, VK_SPACE);
     }
 
     private IntPtr HwndHook(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
-        if (msg == 0x0312 && wParam.ToInt32() == HOTKEY_ID)
+        const int WM_HOTKEY = 0x0312;
+
+        if (msg == WM_HOTKEY)
         {
-            foreach (var window in _notificationWindows)
-                window.Close();
-            handled = true;
+            int id = wParam.ToInt32();
+
+            if (id == HOTKEY_ID_CLOSE)
+            {
+                // Close persistent notifications
+                foreach (var window in _notificationWindows)
+                    window.Close();
+                handled = true;
+            }
+            else if (id == HOTKEY_ID_CONVERT)
+            {
+                // Convert selected text
+                ConvertSelectedText();
+                handled = true;
+            }
         }
+
         return IntPtr.Zero;
     }
 
