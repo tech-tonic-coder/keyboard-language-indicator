@@ -1,72 +1,75 @@
 <?xml version='1.0' encoding='utf-8'?>
 <SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="KeyboardLanguageIndicator.Properties" GeneratedClassName="Settings">
-  <Profiles />
-  <Settings>
-    <Setting Name="Position" Type="System.String" Scope="User">
-      <Value Profile="(Default)">BottomCenter</Value>
-    </Setting>
-    <Setting Name="Duration" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">2</Value>
-    </Setting>
-    <Setting Name="Opacity" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">0.9</Value>
-    </Setting>
-    <Setting Name="BackgroundColor" Type="System.String" Scope="User">
-      <Value Profile="(Default)">#03fc1c</Value>
-    </Setting>
-    <Setting Name="TextColor" Type="System.String" Scope="User">
-      <Value Profile="(Default)">#fafafa</Value>
-    </Setting>
-    <Setting Name="FontSize" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">24</Value>
-    </Setting>
-    <Setting Name="IsPersistent" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="IsDarkMode" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="MinimizeToTray" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="CloseToTray" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="MonitorIndex" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
-    </Setting>
-    <Setting Name="LanguageColors" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="CheckForUpdates" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="LastUpdateCheck" Type="System.String" Scope="User">
-      <Value Profile="(Default)" />
-    </Setting>
-    <Setting Name="ShowOnAllMonitors" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="ShowOnCursorMonitor" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="EnableCursorFollower" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">False</Value>
-    </Setting>
-    <Setting Name="CursorFollowerPersistent" Type="System.Boolean" Scope="User">
-      <Value Profile="(Default)">True</Value>
-    </Setting>
-    <Setting Name="CursorFollowerDuration" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">2</Value>
-    </Setting>
-    <Setting Name="CursorFollowerOffsetX" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
-    </Setting>
-    <Setting Name="CursorFollowerOffsetY" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
-    </Setting>
-    <Setting Name="CursorFollowerOpacity" Type="System.Double" Scope="User">
-      <Value Profile="(Default)">0.85</Value>
-    </Setting>
-  </Settings>
+	<Profiles />
+	<Settings>
+		<Setting Name="Position" Type="System.String" Scope="User">
+			<Value Profile="(Default)">BottomCenter</Value>
+		</Setting>
+		<Setting Name="Duration" Type="System.Double" Scope="User">
+			<Value Profile="(Default)">2</Value>
+		</Setting>
+		<Setting Name="Opacity" Type="System.Double" Scope="User">
+			<Value Profile="(Default)">0.9</Value>
+		</Setting>
+		<Setting Name="BackgroundColor" Type="System.String" Scope="User">
+			<Value Profile="(Default)">#03fc1c</Value>
+		</Setting>
+		<Setting Name="TextColor" Type="System.String" Scope="User">
+			<Value Profile="(Default)">#fafafa</Value>
+		</Setting>
+		<Setting Name="FontSize" Type="System.Double" Scope="User">
+			<Value Profile="(Default)">24</Value>
+		</Setting>
+		<Setting Name="IsPersistent" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">False</Value>
+		</Setting>
+		<Setting Name="IsDarkMode" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">True</Value>
+		</Setting>
+		<Setting Name="MinimizeToTray" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">True</Value>
+		</Setting>
+		<Setting Name="CloseToTray" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">True</Value>
+		</Setting>
+		<Setting Name="MonitorIndex" Type="System.Int32" Scope="User">
+			<Value Profile="(Default)">0</Value>
+		</Setting>
+		<Setting Name="LanguageColors" Type="System.String" Scope="User">
+			<Value Profile="(Default)" />
+		</Setting>
+		<Setting Name="CheckForUpdates" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">True</Value>
+		</Setting>
+		<Setting Name="LastUpdateCheck" Type="System.String" Scope="User">
+			<Value Profile="(Default)" />
+		</Setting>
+		<Setting Name="ShowOnAllMonitors" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">False</Value>
+		</Setting>
+		<Setting Name="ShowOnCursorMonitor" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">False</Value>
+		</Setting>
+		<Setting Name="EnableCursorFollower" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">False</Value>
+		</Setting>
+		<Setting Name="CursorFollowerPersistent" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">True</Value>
+		</Setting>
+		<Setting Name="CursorFollowerDuration" Type="System.Double" Scope="User">
+			<Value Profile="(Default)">2</Value>
+		</Setting>
+		<Setting Name="CursorFollowerOffsetX" Type="System.Int32" Scope="User">
+			<Value Profile="(Default)">0</Value>
+		</Setting>
+		<Setting Name="CursorFollowerOffsetY" Type="System.Int32" Scope="User">
+			<Value Profile="(Default)">0</Value>
+		</Setting>
+		<Setting Name="CursorFollowerOpacity" Type="System.Double" Scope="User">
+			<Value Profile="(Default)">0.85</Value>
+		</Setting>
+		<Setting Name="EnableNotifications" Type="System.Boolean" Scope="User">
+			<Value Profile="(Default)">True</Value>
+		</Setting>
+	</Settings>
 </SettingsFile>

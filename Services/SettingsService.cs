@@ -77,6 +77,13 @@ public class SettingsService
         set => _settings.ShowOnCursorMonitor = value;
     }
 
+    // Notifications Enable/Disable
+    public bool EnableNotifications
+    {
+        get => _settings.EnableNotifications;
+        set => _settings.EnableNotifications = value;
+    }
+
     // Cursor Follower Settings
     public bool EnableCursorFollower
     {

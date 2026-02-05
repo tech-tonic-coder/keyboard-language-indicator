@@ -1,9 +1,9 @@
-using KeyboardLanguageIndicator.Services;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
+using KeyboardLanguageIndicator.Services;
 using AppSettings = KeyboardLanguageIndicator.Properties.Settings;
 
 namespace KeyboardLanguageIndicator;
@@ -100,6 +100,12 @@ public partial class NotificationWindow : Window
         {
             _timer?.Start();
         }
+    }
+
+    public void UpdateColors(Color backgroundColor, Color textColor)
+    {
+        NotificationBorder.Background = new SolidColorBrush(backgroundColor);
+        LanguageText.Foreground = new SolidColorBrush(textColor);
     }
 
     private void FadeIn() => Animate(0, 1);
